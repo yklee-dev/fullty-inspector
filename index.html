@@ -492,18 +492,27 @@ const CONFIG = {
   exposure: ["Primary","Secondary","Hidden"],
   visibility: ["L1","L2","L3"],
 
-  // 컷(운영하다가 숫자만 바꾸면 됨)
-  S_PRIMARY_L1_MAX: 2,
-  APLUS_PRIMARY_L2_MAX: 1,
-  APLUS_PRIMARY_L1_MAX: 6,
-  A_PRIMARY_L2_MAX: 3,
-  A_PRIMARY_L1_MAX: 10,
+   // 컷(“B가 너무 넓게 나오는 문제” 해결용으로 A+/A를 넓힘)
+  // S: 전시급(FT+미세 사용감) -> 30cm에서만 소량 허용
+  S_PRIMARY_L1_MAX: 3,
+  S_WEAR_MAX: 1,
+
+  // A+: 조금 사용감 -> 1m에서 보이는 결함도 아주 소량(최대 2개) 허용
+  APLUS_PRIMARY_L2_MAX: 2,
+  APLUS_PRIMARY_L1_MAX: 10,
+  APLUS_WEAR_MAX: 2,
+
+  // A: 사용감 있지만 관리됨 -> 1m 가시 결함/흠집이 꽤 있어도 A로 흡수
+  A_PRIMARY_L2_MAX: 5,
+  A_PRIMARY_L1_MAX: 20,
+  A_WEAR_MAX: 3,
 
   // 오염(Primary 단일) 상한
   S_PRIMARY_STN_MAX_CM2: 0,
-  APLUS_PRIMARY_STN_MAX_CM2: 1,
-  A_PRIMARY_STN_MAX_CM2: 5,
+  APLUS_PRIMARY_STN_MAX_CM2: 2,
+  A_PRIMARY_STN_MAX_CM2: 8,
   B_PRIMARY_STN_MAX_CM2: 20,
+
 
   photoShots: [
     "정면", "후면", "좌측", "우측", "상단", "하단",
@@ -724,41 +733,43 @@ function evaluate(item){
   const agg = aggregate(item.defects);
   const wearI = wearIndex(item.defects);
 
-  // 캡: Primary L3가 있으면 최대 B
+  // Primary L3(2m에서도 보임)가 있으면 B로 캡 (너무 눈에 띔)
   const hasPrimaryL3 = agg.primaryL3 > 0;
 
-  // SS: "미사용 새상품" = 결함 기록 0
+  // SS: 미사용 새상품 = 결함 기록 0
   if(agg.totalCount === 0){
     return { grade:"SS", wearI:0 };
   }
 
-  // S: 전시급(FT+미세 사용감) = Primary L2/L3 없음, Primary L1 소량, 오염 0, 사용감 지수 낮음
+  // S: 전시급(FT+미세 사용감) = Primary L2/L3 없음 + Primary L1 소량 + 오염 0 + 사용감 지수 낮음
   const isS =
     agg.primaryL2 === 0 &&
     agg.primaryL3 === 0 &&
     agg.primaryL1 <= CONFIG.S_PRIMARY_L1_MAX &&
     agg.primaryStnMax <= CONFIG.S_PRIMARY_STN_MAX_CM2 &&
-    wearI <= 1;
+    wearI <= CONFIG.S_WEAR_MAX;
   if(isS) return { grade:"S", wearI };
 
-  // A+: 조금 사용감
+  // A+: 조금 사용감 (Primary L2도 아주 소량 허용)
   const isAPlus =
     agg.primaryL3 === 0 &&
     agg.primaryL2 <= CONFIG.APLUS_PRIMARY_L2_MAX &&
     agg.primaryL1 <= CONFIG.APLUS_PRIMARY_L1_MAX &&
-    agg.primaryStnMax <= CONFIG.APLUS_PRIMARY_STN_MAX_CM2;
+    agg.primaryStnMax <= CONFIG.APLUS_PRIMARY_STN_MAX_CM2 &&
+    wearI <= CONFIG.APLUS_WEAR_MAX;
   if(isAPlus) return { grade:"A+", wearI };
 
-  // A: 사용감 있지만 관리된 상태
+  // A: 관리된 사용감 (여기 범위를 넓혀서 “조금 흠=바로 B” 문제를 해결)
   const isA =
     agg.primaryL3 === 0 &&
     agg.primaryL2 <= CONFIG.A_PRIMARY_L2_MAX &&
     agg.primaryL1 <= CONFIG.A_PRIMARY_L1_MAX &&
-    agg.primaryStnMax <= CONFIG.A_PRIMARY_STN_MAX_CM2;
+    agg.primaryStnMax <= CONFIG.A_PRIMARY_STN_MAX_CM2 &&
+    wearI <= CONFIG.A_WEAR_MAX;
   if(isA) return { grade:"A", wearI };
 
   // B: 사용감 많이 보임(가성비)
-  // 단, Primary 단일 오염이 20cm² 초과면 X(리퍼/재검수 권장)
+  // 단, Primary 단일 오염이 20cm² 초과면 X(리퍼/재검수)
   if(agg.primaryStnMax > CONFIG.B_PRIMARY_STN_MAX_CM2){
     return { grade:"X", wearI:3, note:`Primary 오염 ${agg.primaryStnMax}cm² > ${CONFIG.B_PRIMARY_STN_MAX_CM2}cm²` };
   }
@@ -768,6 +779,7 @@ function evaluate(item){
   }
   return { grade:"B", wearI };
 }
+
 
 function escapeHtml(s){
   return String(s||"")
