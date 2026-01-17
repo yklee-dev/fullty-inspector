@@ -6,8 +6,7 @@
   <title>Fullty Inspector (SS/S/A+/A/B)</title>
   <style>
     :root{
-      /* Pantone Pistachio Green (approx) */
-      --bg: #A9D39E; /* Pistachio Green web approximation */ 
+      --bg: #A9D39E;            /* Pistachio Green (web approx) */
       --text: #000000;
       --muted: rgba(0,0,0,.65);
       --card: rgba(255,255,255,.88);
@@ -64,7 +63,7 @@
       gap:12px;
     }
     @media(min-width: 980px){
-      main{ grid-template-columns: 380px 1fr; align-items:start; }
+      main{ grid-template-columns: 410px 1fr; align-items:start; }
     }
 
     .card{
@@ -99,6 +98,11 @@
 
     .row{ display:grid; grid-template-columns: 1fr; gap:10px; }
     .grid2{ display:grid; grid-template-columns: 1fr 1fr; gap:10px; }
+    .grid3{ display:grid; grid-template-columns: 1fr; gap:10px; }
+    @media(min-width: 720px){
+      .grid3{ grid-template-columns: 1fr 1fr 1fr; }
+    }
+
     .split{ display:flex; gap:10px; align-items:center; flex-wrap:wrap; }
 
     .btns{ display:flex; gap:8px; flex-wrap:wrap; }
@@ -114,17 +118,15 @@
     button:hover{ background: var(--btnHover); }
     button.primary{
       border-width: 2px;
-      font-weight: 700;
+      font-weight: 900;
     }
     button.danger{
       background: var(--danger);
       border-color: rgba(0,0,0,.25);
       color: #000;
-      font-weight:700;
+      font-weight:900;
     }
-    button.ghost{
-      background: transparent;
-    }
+    button.ghost{ background: transparent; }
 
     .pill{
       display:inline-flex;
@@ -160,8 +162,49 @@
       cursor:pointer;
     }
     .item:hover{ background: rgba(255,255,255,.88); }
-    .item .top{ display:flex; justify-content:space-between; gap:10px; }
-    .item .meta{ color: var(--muted); font-size:12px; margin-top:6px; line-height:1.35; }
+
+    /* ✅ 썸네일 포함 목록 카드 */
+    .itemRow{
+      display:flex;
+      gap:10px;
+      align-items:flex-start;
+    }
+    .thumbBox{
+      width:56px; height:56px;
+      flex: 0 0 56px;
+      border-radius: 12px;
+      border: 1px solid rgba(0,0,0,.18);
+      background: rgba(255,255,255,.7);
+      overflow:hidden;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+    }
+    .thumbImg{
+      width:100%; height:100%;
+      object-fit:cover;
+      display:none;
+    }
+    .thumbPh{
+      font-size:12px;
+      color: rgba(0,0,0,.45);
+      font-weight:800;
+      user-select:none;
+    }
+
+    .item .top{
+      display:flex;
+      justify-content:space-between;
+      gap:10px;
+      align-items:flex-start;
+    }
+    .item .meta{
+      color: var(--muted);
+      font-size:12px;
+      margin-top:6px;
+      line-height:1.4;
+    }
+    .grow{ flex: 1 1 auto; min-width: 0; }
 
     .table{ width:100%; border-collapse: collapse; }
     .table th, .table td{
@@ -173,7 +216,7 @@
     .table th{
       color: var(--muted);
       text-align:left;
-      font-weight: 700;
+      font-weight: 900;
     }
     .table td input, .table td select{
       padding: 8px;
@@ -246,7 +289,7 @@
       <div class="dot"></div>
       <div>
         <b>Fullty Inspector</b>
-        <div class="sub">SS / S / A+ / A / B · 자동 산출 · 로컬 저장</div>
+        <div class="sub">SS / S / A+ / A / B · 자동 산출 · 로컬 저장(+썸네일)</div>
       </div>
     </div>
 
@@ -269,7 +312,7 @@
     <div class="row">
       <div>
         <label>검색</label>
-        <input id="q" placeholder="상품명/ID/등급으로 검색" />
+        <input id="q" placeholder="브랜드/상품명/옵션/검수자/판매자/ID/등급 검색" />
       </div>
 
       <div class="grid2">
@@ -329,9 +372,32 @@
         </div>
       </div>
 
-      <div>
-        <label>상품명</label>
-        <input id="name" placeholder="예: USM Haller Sideboard (화이트)" />
+      <div class="grid3">
+        <div>
+          <label>브랜드</label>
+          <input id="brand" placeholder="예: USM / HAY / Vitra" />
+        </div>
+        <div>
+          <label>상품명</label>
+          <input id="product_name" placeholder="예: Haller Sideboard" />
+        </div>
+        <div>
+          <label>옵션</label>
+          <input id="product_option" placeholder="예: 화이트 / 180cm / 2도어" />
+        </div>
+      </div>
+
+      <div class="grid2">
+        <div>
+          <label>검수자</label>
+          <select id="inspector">
+            <option value="">- 선택 -</option>
+          </select>
+        </div>
+        <div>
+          <label>판매자(입고처)</label>
+          <input id="seller" placeholder="예: 김OO / 리셀러 A / 업체명" />
+        </div>
       </div>
 
       <div class="grid2">
@@ -353,6 +419,22 @@
         <div>
           <label>사진 앨범/폴더 링크(선택)</label>
           <input id="album_link" placeholder="구글드라이브/앨범 링크" />
+        </div>
+      </div>
+
+      <!-- ✅ 썸네일 업로드(상세에서는 이미지 미리보기 X, 목록에만 표시) -->
+      <div class="grid2">
+        <div>
+          <label>썸네일(대표 1장)</label>
+          <input id="thumbFile" type="file" accept="image/*" />
+          <div class="muted">업로드하면 자동 압축 후 IndexedDB에 저장됩니다(기기 내 저장).</div>
+        </div>
+        <div>
+          <label>썸네일 상태</label>
+          <input id="thumbStatus" readonly value="없음" />
+          <div class="btns" style="margin-top:8px;">
+            <button class="ghost" id="btnRemoveThumb">썸네일 삭제</button>
+          </div>
         </div>
       </div>
 
@@ -471,13 +553,15 @@
 <script>
 /* =========================
    Fullty Inspector (No backend)
-   Grades: SS / S / A+ / A / B / X
-   Storage: localStorage
+   - localStorage: items/meta
+   - IndexedDB: thumbnails (blobs)
    ========================= */
 
+const INSPECTORS = ["강혁","이상원","이선홍","이윤경","이주연"]; // ㄱㄴㄷ 순(한글 정렬)
+
 const CONFIG = {
-  version: "Fullty SS/S/A+/A/B v1",
-  storageKey: "fullty_inspector_v2",
+  version: "Fullty SS/S/A+/A/B v3 (thumb in list only)",
+  storageKey: "fullty_inspector_v3",
 
   gradeLabels: {
     "SS": "SS | 미사용 새상품",
@@ -492,17 +576,14 @@ const CONFIG = {
   exposure: ["Primary","Secondary","Hidden"],
   visibility: ["L1","L2","L3"],
 
-   // 컷(“B가 너무 넓게 나오는 문제” 해결용으로 A+/A를 넓힘)
-  // S: 전시급(FT+미세 사용감) -> 30cm에서만 소량 허용
+  // (B가 너무 넓게 나오는 문제 해결) A+/A 흡수 범위를 넓힘
   S_PRIMARY_L1_MAX: 3,
   S_WEAR_MAX: 1,
 
-  // A+: 조금 사용감 -> 1m에서 보이는 결함도 아주 소량(최대 2개) 허용
   APLUS_PRIMARY_L2_MAX: 2,
   APLUS_PRIMARY_L1_MAX: 10,
   APLUS_WEAR_MAX: 2,
 
-  // A: 사용감 있지만 관리됨 -> 1m 가시 결함/흠집이 꽤 있어도 A로 흡수
   A_PRIMARY_L2_MAX: 5,
   A_PRIMARY_L1_MAX: 20,
   A_WEAR_MAX: 3,
@@ -513,14 +594,17 @@ const CONFIG = {
   A_PRIMARY_STN_MAX_CM2: 8,
   B_PRIMARY_STN_MAX_CM2: 20,
 
-
   photoShots: [
     "정면", "후면", "좌측", "우측", "상단", "하단",
     "코너1", "코너2", "코너3", "코너4",
     "라벨/시리얼", "구성품 전체",
     "결함1(클로즈업)", "결함2(클로즈업)", "결함3(클로즈업)", "결함4(클로즈업)",
     "표면(사선광)", "원단/가죽(근접)", "하부/프레임", "포장/박스"
-  ]
+  ],
+
+  // 썸네일 압축 옵션
+  thumbMaxW: 640,
+  thumbQuality: 0.72
 };
 
 const $ = (id) => document.getElementById(id);
@@ -538,61 +622,130 @@ function uuid(){
   return "id-" + Math.random().toString(16).slice(2) + "-" + Date.now();
 }
 
+/* ===== IndexedDB (Thumbnails) ===== */
+const THUMB_DB = { name: "fullty_db", store: "thumbs", version: 1 };
+
+function idbOpen(){
+  return new Promise((resolve, reject)=>{
+    const req = indexedDB.open(THUMB_DB.name, THUMB_DB.version);
+    req.onupgradeneeded = () => {
+      const db = req.result;
+      if(!db.objectStoreNames.contains(THUMB_DB.store)){
+        db.createObjectStore(THUMB_DB.store);
+      }
+    };
+    req.onsuccess = () => resolve(req.result);
+    req.onerror = () => reject(req.error);
+  });
+}
+
+async function idbSet(key, blob){
+  const db = await idbOpen();
+  return new Promise((resolve, reject)=>{
+    const tx = db.transaction(THUMB_DB.store, "readwrite");
+    tx.objectStore(THUMB_DB.store).put(blob, key);
+    tx.oncomplete = () => { db.close(); resolve(true); };
+    tx.onerror = () => { db.close(); reject(tx.error); };
+  });
+}
+
+async function idbGet(key){
+  const db = await idbOpen();
+  return new Promise((resolve, reject)=>{
+    const tx = db.transaction(THUMB_DB.store, "readonly");
+    const req = tx.objectStore(THUMB_DB.store).get(key);
+    req.onsuccess = () => { db.close(); resolve(req.result || null); };
+    req.onerror = () => { db.close(); reject(req.error); };
+  });
+}
+
+async function idbDel(key){
+  const db = await idbOpen();
+  return new Promise((resolve, reject)=>{
+    const tx = db.transaction(THUMB_DB.store, "readwrite");
+    tx.objectStore(THUMB_DB.store).delete(key);
+    tx.oncomplete = () => { db.close(); resolve(true); };
+    tx.onerror = () => { db.close(); reject(tx.error); };
+  });
+}
+
+async function compressToJpegBlob(file, maxW=640, quality=0.72){
+  const img = await fileToImage(file);
+  const scale = Math.min(1, maxW / img.width);
+  const w = Math.round(img.width * scale);
+  const h = Math.round(img.height * scale);
+
+  const canvas = document.createElement("canvas");
+  canvas.width = w; canvas.height = h;
+  const ctx = canvas.getContext("2d");
+  ctx.drawImage(img, 0, 0, w, h);
+
+  return await new Promise((resolve)=> canvas.toBlob(b => resolve(b), "image/jpeg", quality));
+}
+
+function fileToImage(file){
+  return new Promise((resolve, reject)=>{
+    const url = URL.createObjectURL(file);
+    const img = new Image();
+    img.onload = ()=> { URL.revokeObjectURL(url); resolve(img); };
+    img.onerror = (e)=> { URL.revokeObjectURL(url); reject(e); };
+    img.src = url;
+  });
+}
+
+/* ===== State ===== */
 let state = { items: [], selectedId: null };
 
+/* 목록 썸네일 URL 메모리 정리 */
+let _thumbUrls = [];
+let _renderToken = 0;
+function clearThumbUrls(){
+  _thumbUrls.forEach(u=>{ try{ URL.revokeObjectURL(u); }catch(e){} });
+  _thumbUrls = [];
+}
+
 function loadState(){
-  // 1) 새 키 먼저
+  // v3 우선
   let raw = localStorage.getItem(CONFIG.storageKey);
 
-  // 2) 혹시 예전 키(이전 버전)로 저장한 게 있으면 가져오기(마이그레이션)
+  // v2 / v1도 있으면 마이그레이션
   if(!raw){
-    const legacy = localStorage.getItem("fullty_inspector_v1");
-    if(legacy){
-      raw = legacy;
-      // 마이그레이션 후 새 키로 저장
-      try{
-        const obj = JSON.parse(legacy);
-        state = normalizeState(obj);
-        saveState();
-        localStorage.setItem(CONFIG.storageKey, JSON.stringify(state));
-        toast("이전 데이터 불러옴(마이그레이션 완료)");
-        return;
-      }catch(e){
-        // ignore
-      }
-    }
+    raw = localStorage.getItem("fullty_inspector_v2") || localStorage.getItem("fullty_inspector_v1");
   }
 
   if(raw){
-    try{
-      state = normalizeState(JSON.parse(raw));
-    }catch(e){
-      state = { items: [], selectedId: null };
-    }
+    try{ state = normalizeState(JSON.parse(raw)); }
+    catch(e){ state = { items: [], selectedId: null }; }
   }else{
     state = { items: [], selectedId: null };
   }
+
+  // v3로 저장(고정)
+  saveState();
 }
 
 function normalizeState(obj){
   const base = obj && obj.items ? obj : { items: [], selectedId: null };
   base.items = (base.items || []).map(it=>{
-    // 이전에 B+가 있었다면 A로 흡수
-    if(it.grade === "B+") it.grade = "A";
-    if(it.grade === "A+") it.grade = "A+";
-    // grade가 없으면 "-"
-    if(!it.grade) it.grade = "-";
-    // photos 길이 보정
+    // 이전 name → product_name 호환
+    if(!it.product_name && it.name) it.product_name = it.name;
+
+    it.brand = it.brand || "";
+    it.product_name = it.product_name || "";
+    it.product_option = it.product_option || "";
+    it.inspector = it.inspector || "";
+    it.seller = it.seller || "";
+
+    it.thumb_key = it.thumb_key || ""; // ✅ 썸네일 키
+
     if(!Array.isArray(it.photos) || it.photos.length !== CONFIG.photoShots.length){
       it.photos = CONFIG.photoShots.map(()=>false);
     }
-    // defects 보정
     if(!Array.isArray(it.defects)) it.defects = [];
-    // 필드 보정
+
     it.id = it.id || uuid();
     it.item_id = it.item_id || "";
     it.status = it.status || "draft";
-    it.name = it.name || "";
     it.category = it.category || "";
     it.price = it.price || "";
     it.badges = it.badges || "";
@@ -605,10 +758,11 @@ function normalizeState(obj){
     it.created_at = it.created_at || Date.now();
     it.updated_at = it.updated_at || Date.now();
     it.wear_label = it.wear_label || "-";
+    it.grade = it.grade || "-";
+
     return it;
   });
 
-  // 선택값 보정
   if(base.selectedId && !base.items.some(x=>x.id===base.selectedId)){
     base.selectedId = base.items[0]?.id || null;
   }
@@ -634,11 +788,16 @@ function defaultItem(){
     id: uuid(),
     item_id: todayId(),
     status: "draft",
-    name: "",
+    brand: "",
+    product_name: "",
+    product_option: "",
+    inspector: "",
+    seller: "",
     category: "",
     price: "",
     badges: "",
     album_link: "",
+    thumb_key: "",           // ✅ 썸네일
     gate_x: false,
     gate_reason: "",
     grade: "-",
@@ -653,11 +812,19 @@ function defaultItem(){
   };
 }
 
-/* ====== Scoring / Logic ====== */
+function displayTitle(it){
+  const b = (it.brand || "").trim();
+  const p = (it.product_name || "").trim();
+  const o = (it.product_option || "").trim();
+  const main = [b, p].filter(Boolean).join(" ");
+  if(main && o) return `${main} · ${o}`;
+  return main || o || "(상품명 없음)";
+}
+
+/* ====== Logic ====== */
 function aggregate(defects){
   let primaryL1=0, primaryL2=0, primaryL3=0;
   let primaryStnMax=0;
-  let wearCodes=0;
   let totalCount=0;
 
   defects.forEach(d=>{
@@ -669,8 +836,6 @@ function aggregate(defects){
 
     totalCount += cnt;
 
-    if(["WAR","PIL","SAG","FAD"].includes(code)) wearCodes += cnt;
-
     if(exp === "Primary"){
       if(vis==="L1") primaryL1 += cnt;
       if(vis==="L2") primaryL2 += cnt;
@@ -679,7 +844,7 @@ function aggregate(defects){
     }
   });
 
-  return { primaryL1, primaryL2, primaryL3, primaryStnMax, wearCodes, totalCount };
+  return { primaryL1, primaryL2, primaryL3, primaryStnMax, totalCount };
 }
 
 function wearIndex(defects){
@@ -698,7 +863,6 @@ function wearIndex(defects){
     }
     if(code==="PIL"){
       const lvl = parseInt(extra||"5",10);
-      // 5=0점, 4=1점, 3=2점, 2=3점, 1=4점
       score += Math.max(0, 5 - (isNaN(lvl)?5:lvl));
     }
   });
@@ -708,14 +872,11 @@ function wearIndex(defects){
   if(score<=6) return 2;
   return 3;
 }
-
-function wearLabel(i){
-  return i===0?"매우 낮음":i===1?"낮음":i===2?"보통":"높음";
-}
+function wearLabel(i){ return i===0?"매우 낮음":i===1?"낮음":i===2?"보통":"높음"; }
 
 function gradeSummary(grade){
   switch(grade){
-    case "SS": return "미사용 새상품 컨디션입니다. (사용감/결함 기록 없음)";
+    case "SS": return "미사용 새상품 컨디션입니다. (결함/사용감 기록 없음)";
     case "S":  return "전시급 컨디션이며 FT(팩토리 톨러런스)와 가까이에서만 보일 수 있는 미세 사용감이 포함될 수 있습니다.";
     case "A+": return "사용감이 약간 있으며, 가까이에서 확인되는 흔적이 있을 수 있습니다.";
     case "A":  return "사용감이 있으나 관리된 컨디션입니다.";
@@ -733,15 +894,14 @@ function evaluate(item){
   const agg = aggregate(item.defects);
   const wearI = wearIndex(item.defects);
 
-  // Primary L3(2m에서도 보임)가 있으면 B로 캡 (너무 눈에 띔)
   const hasPrimaryL3 = agg.primaryL3 > 0;
 
-  // SS: 미사용 새상품 = 결함 기록 0
+  // SS: 결함 기록 0
   if(agg.totalCount === 0){
     return { grade:"SS", wearI:0 };
   }
 
-  // S: 전시급(FT+미세 사용감) = Primary L2/L3 없음 + Primary L1 소량 + 오염 0 + 사용감 지수 낮음
+  // S: 전시급
   const isS =
     agg.primaryL2 === 0 &&
     agg.primaryL3 === 0 &&
@@ -750,7 +910,7 @@ function evaluate(item){
     wearI <= CONFIG.S_WEAR_MAX;
   if(isS) return { grade:"S", wearI };
 
-  // A+: 조금 사용감 (Primary L2도 아주 소량 허용)
+  // A+: 조금 사용감
   const isAPlus =
     agg.primaryL3 === 0 &&
     agg.primaryL2 <= CONFIG.APLUS_PRIMARY_L2_MAX &&
@@ -759,7 +919,7 @@ function evaluate(item){
     wearI <= CONFIG.APLUS_WEAR_MAX;
   if(isAPlus) return { grade:"A+", wearI };
 
-  // A: 관리된 사용감 (여기 범위를 넓혀서 “조금 흠=바로 B” 문제를 해결)
+  // A: 관리된 사용감
   const isA =
     agg.primaryL3 === 0 &&
     agg.primaryL2 <= CONFIG.A_PRIMARY_L2_MAX &&
@@ -768,8 +928,7 @@ function evaluate(item){
     wearI <= CONFIG.A_WEAR_MAX;
   if(isA) return { grade:"A", wearI };
 
-  // B: 사용감 많이 보임(가성비)
-  // 단, Primary 단일 오염이 20cm² 초과면 X(리퍼/재검수)
+  // B / X
   if(agg.primaryStnMax > CONFIG.B_PRIMARY_STN_MAX_CM2){
     return { grade:"X", wearI:3, note:`Primary 오염 ${agg.primaryStnMax}cm² > ${CONFIG.B_PRIMARY_STN_MAX_CM2}cm²` };
   }
@@ -779,7 +938,6 @@ function evaluate(item){
   }
   return { grade:"B", wearI };
 }
-
 
 function escapeHtml(s){
   return String(s||"")
@@ -794,9 +952,15 @@ function buildOutputs(item, grade, wearI, note){
   const wl = wearLabel(wearI);
   const badges = (item.badges||"").trim();
   const link = (item.album_link||"").trim();
+  const inspector = (item.inspector||"").trim();
+  const seller = (item.seller||"").trim();
+
+  const title = displayTitle(item);
 
   const simple =
-    `[${grade}] ${CONFIG.gradeLabels[grade] || grade} / 사용감: ${wl}` +
+    `[${grade}] ${title} / 사용감: ${wl}` +
+    (inspector ? ` / 검수자: ${inspector}` : "") +
+    (seller ? ` / 판매자: ${seller}` : "") +
     (badges ? ` / 배지: ${badges}` : "") +
     (link ? ` / 사진: ${link}` : "");
 
@@ -821,17 +985,20 @@ function buildOutputs(item, grade, wearI, note){
 
   const html =
 `<div style="line-height:1.7; color:#000;">
-  <h2>컨디션</h2>
-  <p><b>${escapeHtml(CONFIG.gradeLabels[grade] || grade)}</b><br/>
-     사용감: <b>${escapeHtml(wl)}</b>
-     ${badges?`<br/>배지: <b>${escapeHtml(badges)}</b>`:""}
-     ${link?`<br/>사진 링크: <a href="${escapeAttr(link)}" target="_blank" rel="noopener noreferrer">${escapeHtml(link)}</a>`:""}
+  <h2>${escapeHtml(title)}</h2>
+  <p>
+    <b>${escapeHtml(CONFIG.gradeLabels[grade] || grade)}</b><br/>
+    사용감: <b>${escapeHtml(wl)}</b>
+    ${inspector ? `<br/>검수자: <b>${escapeHtml(inspector)}</b>` : ""}
+    ${seller ? `<br/>판매자(입고처): <b>${escapeHtml(seller)}</b>` : ""}
+    ${badges ? `<br/>배지: <b>${escapeHtml(badges)}</b>` : ""}
+    ${link ? `<br/>사진 링크: <a href="${escapeAttr(link)}" target="_blank" rel="noopener noreferrer">${escapeHtml(link)}</a>` : ""}
   </p>
   <h3>요약</h3>
   <p>${escapeHtml(gradeSummary(grade))}</p>
-  ${note?`<p style="color:rgba(0,0,0,.65);">검수 노트: ${escapeHtml(note)}</p>`:""}
+  ${note ? `<p style="color:rgba(0,0,0,.65);">검수 노트: ${escapeHtml(note)}</p>` : ""}
   <h3>결함/사용감 고지</h3>
-  ${lines.length?`<pre style="white-space:pre-wrap; background:rgba(0,0,0,.03); border:1px solid rgba(0,0,0,.15); padding:10px; border-radius:12px;">${escapeHtml(lines.join("\\n"))}</pre>`:"<p>기록된 결함이 없습니다.</p>"}
+  ${lines.length ? `<pre style="white-space:pre-wrap; background:rgba(0,0,0,.03); border:1px solid rgba(0,0,0,.15); padding:10px; border-radius:12px;">${escapeHtml(lines.join("\\n"))}</pre>` : "<p>기록된 결함이 없습니다.</p>"}
   <hr style="border:0; border-top:1px solid rgba(0,0,0,.15);"/>
   <p style="color:rgba(0,0,0,.55); font-size:12px;">표준: ${escapeHtml(CONFIG.version)}</p>
 </div>`;
@@ -839,7 +1006,7 @@ function buildOutputs(item, grade, wearI, note){
   return { simple, html, wearLabel: wl };
 }
 
-/* ====== UI helpers ====== */
+/* ====== UI ====== */
 function renderPhotoChecks(item){
   const wrap = $("photoChecks");
   wrap.innerHTML = "";
@@ -885,10 +1052,7 @@ function addDefRow(rowData={}){
   tr.querySelector(".extra").value = rowData.extra ?? "";
 
   tr.querySelector(".del").onclick = ()=>{ tr.remove(); syncDefectsFromUI(); };
-
-  ["change","input"].forEach(ev=>{
-    tr.addEventListener(ev, ()=>syncDefectsFromUI());
-  });
+  ["change","input"].forEach(ev=> tr.addEventListener(ev, ()=>syncDefectsFromUI()));
 
   $("defBody").appendChild(tr);
 }
@@ -922,20 +1086,51 @@ function selectItem(id){
   fillForm(getSelectedItem());
 }
 
+function setThumbStatus(item){
+  $("thumbStatus").value = item && item.thumb_key ? "있음" : "없음";
+}
+
+/* ✅ 목록 썸네일 로딩(비동기) */
+async function loadThumbInto(imgEl, key, token){
+  try{
+    const blob = await idbGet(key);
+    if(!blob) return;
+    if(token !== _renderToken) return; // 렌더가 바뀌면 무시
+
+    const url = URL.createObjectURL(blob);
+    _thumbUrls.push(url);
+
+    imgEl.src = url;
+    imgEl.style.display = "block";
+    const ph = imgEl.parentElement.querySelector(".thumbPh");
+    if(ph) ph.style.display = "none";
+  }catch(e){
+    // ignore
+  }
+}
+
 function fillForm(item){
   if(!item){
     $("selName").textContent = "없음";
     return;
   }
-  $("selName").textContent = item.name || item.item_id || "선택됨";
+  $("selName").textContent = displayTitle(item);
 
   $("item_id").value = item.item_id || "";
   $("status").value = item.status || "draft";
-  $("name").value = item.name || "";
+
+  $("brand").value = item.brand || "";
+  $("product_name").value = item.product_name || "";
+  $("product_option").value = item.product_option || "";
+
+  $("inspector").value = item.inspector || "";
+  $("seller").value = item.seller || "";
+
   $("category").value = item.category || "";
   $("price").value = item.price || "";
   $("badges").value = item.badges || "";
   $("album_link").value = item.album_link || "";
+
   $("gate_x").value = String(!!item.gate_x);
   $("gate_reason").value = item.gate_reason || "";
 
@@ -945,11 +1140,10 @@ function fillForm(item){
   $("content_html").value = item.content_html || "";
   $("notes").value = item.notes || "";
 
-  // defects
+  setThumbStatus(item);
+
   $("defBody").innerHTML = "";
   (item.defects||[]).forEach(d=>addDefRow(d));
-
-  // photo checks
   renderPhotoChecks(item);
 }
 
@@ -959,13 +1153,22 @@ function updateItemFromForm(){
 
   item.item_id = $("item_id").value.trim() || item.item_id || todayId();
   item.status = $("status").value;
-  item.name = $("name").value.trim();
+
+  item.brand = $("brand").value.trim();
+  item.product_name = $("product_name").value.trim();
+  item.product_option = $("product_option").value.trim();
+
+  item.inspector = $("inspector").value.trim();
+  item.seller = $("seller").value.trim();
+
   item.category = $("category").value.trim();
   item.price = $("price").value.trim();
   item.badges = $("badges").value.trim();
   item.album_link = $("album_link").value.trim();
+
   item.gate_x = $("gate_x").value === "true";
   item.gate_reason = $("gate_reason").value.trim();
+
   item.notes = $("notes").value;
 
   item.updated_at = Date.now();
@@ -973,7 +1176,6 @@ function updateItemFromForm(){
 
   saveState();
   renderList();
-
   return item;
 }
 
@@ -1004,11 +1206,14 @@ function renderList(){
   let items = [...state.items];
 
   if(q){
-    items = items.filter(it =>
-      (it.name||"").toLowerCase().includes(q) ||
-      (it.item_id||"").toLowerCase().includes(q) ||
-      (it.grade||"").toLowerCase().includes(q)
-    );
+    items = items.filter(it => {
+      const hay = [
+        it.brand, it.product_name, it.product_option,
+        it.inspector, it.seller,
+        it.item_id, it.grade, it.category
+      ].map(v => String(v||"").toLowerCase()).join(" ");
+      return hay.includes(q);
+    });
   }
   if(fg){
     items = items.filter(it => it.grade === fg);
@@ -1017,28 +1222,56 @@ function renderList(){
   items.sort((a,b)=>{
     if(sortBy==="new") return (b.updated_at||0) - (a.updated_at||0);
     if(sortBy==="old") return (a.updated_at||0) - (b.updated_at||0);
-    return String(a.name||"").localeCompare(String(b.name||""),"ko");
+    return displayTitle(a).localeCompare(displayTitle(b),"ko");
   });
 
   const el = $("list");
   el.innerHTML = "";
+
+  clearThumbUrls();
+  _renderToken++;
 
   items.forEach(it=>{
     const div = document.createElement("div");
     div.className = "item";
     div.onclick = ()=>selectItem(it.id);
 
+    const title = displayTitle(it);
+    const inspector = (it.inspector||"").trim();
+    const seller = (it.seller||"").trim();
+
     div.innerHTML = `
-      <div class="top">
-        <div><b>${escapeHtml(it.name || "(상품명 없음)")}</b></div>
-        <span class="pill">등급 <b>${escapeHtml(it.grade || "-")}</b></span>
-      </div>
-      <div class="meta">
-        ID: <span class="kbd">${escapeHtml(it.item_id || "-")}</span><br/>
-        ${escapeHtml(it.category || "")} · 사용감: ${escapeHtml(it.wear_label || "-")} · ${it.status==="final" ? "✅완료" : "📝작성중"}
+      <div class="itemRow">
+        <div class="thumbBox">
+          <img class="thumbImg" alt="thumb"/>
+          <div class="thumbPh">NO</div>
+        </div>
+        <div class="grow">
+          <div class="top">
+            <div style="min-width:0;">
+              <b style="display:block; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${escapeHtml(title)}</b>
+              <div class="meta">ID: <span class="kbd">${escapeHtml(it.item_id || "-")}</span></div>
+            </div>
+            <span class="pill">등급 <b>${escapeHtml(it.grade || "-")}</b></span>
+          </div>
+          <div class="meta">
+            ${escapeHtml(it.category || "")}
+            · 사용감: ${escapeHtml(it.wear_label || "-")}
+            · ${it.status==="final" ? "✅완료" : "📝작성중"}
+            ${inspector ? `<br/>검수자: ${escapeHtml(inspector)}` : ""}
+            ${seller ? `${inspector ? " · " : "<br/>"}판매자: ${escapeHtml(seller)}` : ""}
+          </div>
+        </div>
       </div>
     `;
+
     el.appendChild(div);
+
+    // 썸네일 비동기 로딩
+    if(it.thumb_key){
+      const imgEl = div.querySelector(".thumbImg");
+      loadThumbInto(imgEl, it.thumb_key, _renderToken);
+    }
   });
 
   if(!items.length){
@@ -1056,13 +1289,20 @@ function newItem(){
   toast("새 검수 생성");
 }
 
-function deleteSelected(){
+/* ✅ 상품 삭제 시 썸네일도 삭제 */
+async function deleteSelected(){
   const id = state.selectedId;
   if(!id) return;
 
   const idx = state.items.findIndex(it=>it.id===id);
   if(idx >= 0){
-    const name = state.items[idx].name || state.items[idx].item_id;
+    const it = state.items[idx];
+    const name = displayTitle(it);
+
+    if(it.thumb_key){
+      await idbDel(it.thumb_key);
+    }
+
     state.items.splice(idx, 1);
     state.selectedId = state.items[0]?.id || null;
     saveState();
@@ -1073,9 +1313,17 @@ function deleteSelected(){
 }
 
 function exportCSV(){
-  const cols = ["item_id","status","name","category","price","badges","album_link","gate_x","gate_reason","grade","wear_label","updated_at"];
-  const rows = [cols.join(",")];
+  const cols = [
+    "item_id","status",
+    "brand","product_name","product_option",
+    "inspector","seller",
+    "category","price","badges","album_link",
+    "thumb_key",
+    "gate_x","gate_reason",
+    "grade","wear_label","updated_at"
+  ];
 
+  const rows = [cols.join(",")];
   state.items.forEach(it=>{
     const r = cols.map(c=>{
       let v = it[c];
@@ -1113,8 +1361,17 @@ function restoreJSON(file){
   reader.readAsText(file);
 }
 
-function wipeAll(){
+/* ✅ 전체삭제 시 썸네일도 같이 정리 */
+async function wipeAll(){
   if(!confirm("정말 전체 데이터를 삭제할까요? (복구 불가)")) return;
+
+  // 썸네일 삭제
+  for(const it of state.items){
+    if(it.thumb_key){
+      try{ await idbDel(it.thumb_key); }catch(e){}
+    }
+  }
+
   state = { items: [], selectedId: null };
   saveState();
   renderList();
@@ -1145,8 +1402,36 @@ function closeDataModal(){
   $("dataModal").style.display = "none";
 }
 
+/* ===== Thumbnail actions ===== */
+async function setThumbFromFile(file, item){
+  const blob = await compressToJpegBlob(file, CONFIG.thumbMaxW, CONFIG.thumbQuality);
+  const key = item.thumb_key || `thumb:${item.id}`;
+  await idbSet(key, blob);
+  item.thumb_key = key;
+  item.updated_at = Date.now();
+  saveState();
+  setThumbStatus(item);
+}
+
+async function removeThumb(item){
+  if(!item || !item.thumb_key) return;
+  await idbDel(item.thumb_key);
+  item.thumb_key = "";
+  item.updated_at = Date.now();
+  saveState();
+  setThumbStatus(item);
+}
+
 /* Init */
 function init(){
+  // inspector dropdown
+  const sel = $("inspector");
+  INSPECTORS.forEach(name=>{
+    const o = document.createElement("option");
+    o.value = name; o.textContent = name;
+    sel.appendChild(o);
+  });
+
   loadState();
   renderList();
 
@@ -1183,17 +1468,51 @@ function init(){
 
   $("btnWipe").onclick = wipeAll;
 
-  // Data view modal
   $("btnViewData").onclick = openDataModal;
   $("btnCloseData").onclick = closeDataModal;
   $("btnCopyData").onclick = ()=>copyText($("dataDump").value || "");
   $("dataModal").addEventListener("click", (e)=>{ if(e.target.id==="dataModal") closeDataModal(); });
 
   // auto-save
-  ["item_id","status","name","category","price","badges","album_link","gate_x","gate_reason","notes"].forEach(id=>{
+  [
+    "item_id","status",
+    "brand","product_name","product_option",
+    "inspector","seller",
+    "category","price","badges","album_link",
+    "gate_x","gate_reason","notes"
+  ].forEach(id=>{
     $(id).addEventListener("change", ()=>updateItemFromForm());
     $(id).addEventListener("blur", ()=>updateItemFromForm());
   });
+
+  // thumbnail upload
+  $("thumbFile").addEventListener("change", async (e)=>{
+    const file = e.target.files?.[0];
+    if(!file) return;
+
+    const item = getSelectedItem();
+    if(!item){ alert("먼저 상품을 선택/생성하세요."); e.target.value=""; return; }
+
+    try{
+      await setThumbFromFile(file, item);
+      toast("썸네일 저장 완료(목록에서 확인)");
+      renderList();
+    }catch(err){
+      alert("썸네일 저장 실패: " + err);
+    }finally{
+      e.target.value = "";
+    }
+  });
+
+  $("btnRemoveThumb").onclick = async ()=>{
+    const item = getSelectedItem();
+    if(!item) return;
+    if(!item.thumb_key){ toast("삭제할 썸네일 없음"); return; }
+
+    await removeThumb(item);
+    toast("썸네일 삭제됨");
+    renderList();
+  };
 }
 
 init();
