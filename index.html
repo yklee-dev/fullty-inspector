@@ -289,7 +289,7 @@
       <div class="dot"></div>
       <div>
         <b>Fullty Inspector</b>
-        <div class="sub">SS / S / A+ / A / B · 자동 산출 · 로컬 저장(+썸네일)</div>
+        <div class="sub">SS / S / A+ / A / B · 자동 산출 · 로컬 저장(+썸네일) · Supabase 저장(선택)</div>
       </div>
     </div>
 
@@ -550,11 +550,62 @@
 
 <div class="toast" id="toast"></div>
 
+<!-- ✅ 1) Supabase 라이브러리 먼저 로드 -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
 <script>
 /* =========================
-   Fullty Inspector (No backend)
+   Fullty Inspector
    - localStorage: items/meta
    - IndexedDB: thumbnails (blobs)
+   - Supabase: optional save (DB)
+   ========================= */
+
+/* =========================
+   ✅ Supabase 설정(필수: 너가 채워야 함)
+   1) Supabase > Project Settings > API에서 복사
+   2) 아래 2개 문자열을 교체
+   ========================= */
+const SUPABASE_URL = "PASTE_YOUR_SUPABASE_PROJECT_URL";
+const SUPABASE_ANON_KEY = "PASTE_YOUR_SUPABASE_ANON_PUBLIC_KEY";
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+/* ✅ Supabase 로그인(처음 1번만 prompt 뜸) */
+async function ensureLogin(){
+  try{
+    const { data } = await sb.auth.getSession();
+    if (data && data.session) return;
+  }catch(e){
+    // ignore
+  }
+  const email = prompt("Supabase 로그인 이메일");
+  const password = prompt("Supabase 비밀번호");
+  if(!email || !password) throw new Error("로그인이 취소되었어요");
+  const { error } = await sb.auth.signInWithPassword({ email, password });
+  if (error) throw error;
+}
+
+/* ✅ Supabase로 저장(아이템 통째로 저장하는 초간단 버전) */
+async function pushToSupabase(item){
+  if(!item?.id) throw new Error("item.id가 없어요");
+
+  const payload = {
+    client_id: String(item.id),     // 로컬 id로 upsert
+    item_id: item.item_id || "",
+    grade: item.grade || "-",
+    updated_at: new Date().toISOString(),
+    data: item
+  };
+
+  const { error } = await sb
+    .from("inspections")
+    .upsert(payload, { onConflict: "client_id" });
+
+  if(error) throw error;
+}
+
+/* =========================
+   기존 코드 시작
    ========================= */
 
 const INSPECTORS = ["강혁","이상원","이선홍","이윤경","이주연"]; // ㄱㄴㄷ 순(한글 정렬)
@@ -1445,9 +1496,25 @@ function init(){
     fillForm(null);
   }
 
+  // ✅ 버튼 바인딩(여기가 “정상 자리”)
   $("btnNew").onclick = newItem;
   $("btnCalc").onclick = calcAndFill;
-  $("btnSave").onclick = ()=>{ updateItemFromForm(); toast("저장됨"); };
+
+  $("btnSave").onclick = async ()=>{ 
+    updateItemFromForm();
+    const item = getSelectedItem();
+    if(!item) return;
+
+    try{
+      await ensureLogin();          // 처음 1번만 prompt
+      await pushToSupabase(item);   // Supabase 저장
+      toast("저장됨 ✅ (Supabase)");
+    }catch(err){
+      console.error(err);
+      toast("Supabase 저장 실패 ❌ (로컬은 저장됨)");
+    }
+  };
+
   $("btnDelete").onclick = deleteSelected;
 
   $("btnAddDef").onclick = ()=>{ addDefRow(); syncDefectsFromUI(); };
@@ -1463,26 +1530,34 @@ function init(){
   $("btnCSV").onclick = exportCSV;
 
   $("btnBackup").onclick = backupJSON;
-  $("btnRestore").onclick = ()=>$("restoreFile").click();
-  $("restoreFile").onchange = (e)=>{ const f=e.target.files?.[0]; if(f) restoreJSON(f); e.target.value=""; };
+
+  $("btnRestore").onclick = ()=> $("restoreFile").click();
+  $("restoreFile").onchange = (e)=>{
+    const file = e.target.files?.[0];
+    if(file) restoreJSON(file);
+    e.target.value = "";
+  };
 
   $("btnWipe").onclick = wipeAll;
 
   $("btnViewData").onclick = openDataModal;
   $("btnCloseData").onclick = closeDataModal;
-  $("btnCopyData").onclick = ()=>copyText($("dataDump").value || "");
-  $("dataModal").addEventListener("click", (e)=>{ if(e.target.id==="dataModal") closeDataModal(); });
+  $("btnCopyData").onclick = ()=> copyText($("dataDump").value || "");
 
-  // auto-save
+  // ✅ 입력 변경 시 자동 로컬 저장(배열 복구 완료)
   [
     "item_id","status",
     "brand","product_name","product_option",
     "inspector","seller",
-    "category","price","badges","album_link",
-    "gate_x","gate_reason","notes"
+    "category","price",
+    "badges","album_link",
+    "gate_x","gate_reason",
+    "notes"
   ].forEach(id=>{
-    $(id).addEventListener("change", ()=>updateItemFromForm());
-    $(id).addEventListener("blur", ()=>updateItemFromForm());
+    const el = $(id);
+    if(!el) return;
+    el.addEventListener("change", ()=>updateItemFromForm());
+    el.addEventListener("blur", ()=>updateItemFromForm());
   });
 
   // thumbnail upload
